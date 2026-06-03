@@ -7,18 +7,18 @@ import requests
 
 # OpenAI-compatible endpoint (Alibaba Cloud / DeepSeek)
 API_BASE = os.environ.get("OPENAI_API_BASE", "https://dashscope.aliyuncs.com/compatible-mode/v1")
-MODEL = os.environ.get("OPENAI_MODEL", "deepseek-chat")
+MODEL = os.environ.get("OPENAI_MODEL", "deepseek-v4-flash")
 
 PROMPT = """You are a game development technical editor. Based on the GDC talk description below, output ONLY a JSON object (no markdown fences, no extra text) with these exact fields:
 
-{
+{{
   "one_liner": "Most impactful insight/conclusion from this talk, in Chinese, within 20 characters",
   "summary_cn": "2-3 sentence Chinese summary covering: background problem → approach/method → conclusion/value",
   "key_points": ["Key takeaway 1 in English", "Key takeaway 2", "Key takeaway 3"],
   "tags": ["tag1", "tag2", "tag3"],
   "level": "Beginner | Intermediate | Advanced",
   "category": "Programming | Design | Art | Production | Business | Other"
-}
+}}
 
 Talk description:
 {description}"""
