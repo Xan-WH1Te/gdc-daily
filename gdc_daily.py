@@ -13,6 +13,19 @@ DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache.db")
 YEARS = [int(y.strip()) for y in os.environ.get("GDC_YEARS", "2026").split(",")]
 
 
+def _load_env():
+    """Load .env file if it exists."""
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if os.path.exists(env_path):
+        with open(env_path) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, val = line.partition("=")
+                    if key not in os.environ:
+                        os.environ[key] = val
+
+
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     conn.execute("""
@@ -52,6 +65,7 @@ def seed_cache(conn, sessions):
 
 
 def main():
+    _load_env()
     missing_vars = []
     if not os.environ.get("ANTHROPIC_API_KEY"):
         missing_vars.append("ANTHROPIC_API_KEY")
