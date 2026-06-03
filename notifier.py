@@ -3,8 +3,6 @@ import os
 
 import requests
 
-WEBHOOK_URL = os.environ.get("GDC_WEBHOOK_URL", "")
-
 CATEGORY_COLORS = {
     "Programming": 0x3498DB,
     "Design": 0x2ECC71,
@@ -40,7 +38,7 @@ def build_embed(session, detail, summary):
         "author": {
             "name": f'🎮 GDC {session["year"]} · {CATEGORY_CN.get(category, "综合")}'
         },
-        "title": detail["title"] or session["title_from_slug"],
+        "title": detail.get("title") or session["title_from_slug"],
         "url": session["url"],
         "description": "\n".join(desc_parts),
         "color": color,
@@ -75,13 +73,16 @@ def build_embed(session, detail, summary):
 
 def send_to_discord(embeds):
     """Send embeds to Discord webhook. Splits into batches of 10 (Discord limit)."""
-    if not WEBHOOK_URL:
+    webhook_url = os.environ.get("GDC_WEBHOOK_URL", "")
+    if not webhook_url:
         print("GDC_WEBHOOK_URL not set, skipping Discord send")
         return
 
     for i in range(0, len(embeds), 10):
         batch = embeds[i : i + 10]
-        payload = {"embeds": batch}
-        resp = requests.post(WEBHOOK_URL, json=payload, timeout=30)
-        resp.raise_for_status()
-        print(f"Sent {len(batch)} embed(s) to Discord")
+        try:
+            resp = requests.post(webhook_url, json={"embeds": batch}, timeout=30)
+            resp.raise_for_status()
+            print(f"Sent {len(batch)} embed(s) to Discord")
+        except requests.RequestException as e:
+            print(f"Failed to send batch {i // 10 + 1}: {e}")
