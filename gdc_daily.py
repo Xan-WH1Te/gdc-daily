@@ -62,8 +62,21 @@ def main():
         sys.exit(1)
 
     conn = init_db()
-    first = is_first_run(conn)
     all_embeds = []
+
+    # First run: seed all years' sessions into cache, no push
+    if is_first_run(conn):
+        for year in YEARS:
+            print(f"Seeding GDC {year} cache...")
+            try:
+                sessions = fetch_year_sessions(year)
+            except Exception as e:
+                print(f"Failed to fetch year {year}: {e}")
+                continue
+            seed_cache(conn, sessions)
+        conn.close()
+        print("First run complete. Cache seeded. Run again tomorrow for new talks.")
+        sys.exit(0)
 
     for year in YEARS:
         print(f"Fetching GDC {year} sessions...")
@@ -75,11 +88,6 @@ def main():
 
         new = get_new_sessions(conn, sessions)
         print(f"  {len(sessions)} total, {len(new)} new")
-
-        if first:
-            seed_cache(conn, sessions)
-            print("First run complete. Cache seeded. Run again tomorrow for new talks.")
-            sys.exit(0)
 
         if not new:
             continue
@@ -117,6 +125,8 @@ def main():
         print("Done.")
     else:
         print("No new sessions to report.")
+
+    conn.close()
 
 
 if __name__ == "__main__":
