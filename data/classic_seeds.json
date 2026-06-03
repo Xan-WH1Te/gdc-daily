@@ -1,0 +1,402 @@
+[
+  {
+    "id": "1026255",
+    "title": "Subnautica",
+    "url": "https://gdcvault.com/play/1026255/-Subnautica",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1021948",
+    "title": "Effective LiveOps",
+    "url": "https://gdcvault.com/play/1021948/Effective-LiveOps",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025967",
+    "title": "Using Lean Analytics to Make",
+    "url": "https://gdcvault.com/play/1025967/Using-Lean-Analytics-to-Make",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025777",
+    "title": "Classic Game Postmortem Command Conquer",
+    "url": "https://gdcvault.com/play/1025777/Classic-Game-Postmortem-Command-Conquer",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1022030",
+    "title": "Growing the Participation of Women",
+    "url": "https://gdcvault.com/play/1022030/Growing-the-Participation-of-Women",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1024928",
+    "title": "Classic Game Postmortem Sonic the",
+    "url": "https://gdcvault.com/play/1024928/Classic-Game-Postmortem-Sonic-the",
+    "year": "2018",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1023214",
+    "title": "The Current State of Muslim",
+    "url": "https://gdcvault.com/play/1023214/The-Current-State-of-Muslim",
+    "year": "2016",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025830",
+    "title": "Red Pill Blue Pill Narrative",
+    "url": "https://gdcvault.com/play/1025830/Red-Pill-Blue-Pill-Narrative",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025321",
+    "title": "The Art of Monument Valley",
+    "url": "https://gdcvault.com/play/1025321/The-Art-of-Monument-Valley",
+    "year": "2018",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1022023",
+    "title": "Gravity Ghost A",
+    "url": "https://gdcvault.com/play/1022023/Gravity-Ghost-A",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1022094",
+    "title": "JPS Over 100x Faster than",
+    "url": "https://gdcvault.com/play/1022094/JPS-Over-100x-Faster-than",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025219",
+    "title": "Producer Bootcamp Lessons from Driving",
+    "url": "https://gdcvault.com/play/1025219/Producer-Bootcamp-Lessons-from-Driving",
+    "year": "2018",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1022107",
+    "title": "Level Design in a Day",
+    "url": "https://gdcvault.com/play/1022107/Level-Design-in-a-Day",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1027375",
+    "title": "The Art of Ori and",
+    "url": "https://gdcvault.com/play/1027375/The-Art-of-Ori-and",
+    "year": "2021",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1029351",
+    "title": "The Language of Gameplay and",
+    "url": "https://gdcvault.com/play/1029351/The-Language-of-Gameplay-and",
+    "year": "2023",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1023307",
+    "title": "The Art of Destruction in",
+    "url": "https://gdcvault.com/play/1023307/The-Art-of-Destruction-in",
+    "year": "2016",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1021950",
+    "title": "Efficiency for Game Designers Lessons",
+    "url": "https://gdcvault.com/play/1021950/Efficiency-for-Game-Designers-Lessons",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1024945",
+    "title": "Failure",
+    "url": "https://gdcvault.com/play/1024945/Failure",
+    "year": "2018",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1022487",
+    "title": "Free Your Management Mind a",
+    "url": "https://gdcvault.com/play/1022487/Free-Your-Management-Mind-a",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1026187",
+    "title": "Speed of Light DXR Ray",
+    "url": "https://gdcvault.com/play/1026187/Speed-of-Light-DXR-Ray",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1024627",
+    "title": "A Thousand Tiny Tales Emergent",
+    "url": "https://gdcvault.com/play/1024627/A-Thousand-Tiny-Tales-Emergent",
+    "year": "2017",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1026428",
+    "title": "Solving an Invisible Problem Designing",
+    "url": "https://gdcvault.com/play/1026428/Solving-an-Invisible-Problem-Designing",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025095",
+    "title": "Data Driven or Data Blinded",
+    "url": "https://gdcvault.com/play/1025095/Data-Driven-or-Data-Blinded",
+    "year": "2018",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1024700",
+    "title": "GPU Based Run Time Procedural",
+    "url": "https://gdcvault.com/play/1024700/GPU-Based-Run-Time-Procedural",
+    "year": "2017",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025760",
+    "title": "Designing Gambit Mode in Destiny",
+    "url": "https://gdcvault.com/play/1025760/Designing-Gambit-Mode-in-Destiny",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025948",
+    "title": "Technical Artist Bootcamp Cementing Your",
+    "url": "https://gdcvault.com/play/1025948/Technical-Artist-Bootcamp-Cementing-Your",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1026408",
+    "title": "Super Powering Technical Artists Using",
+    "url": "https://gdcvault.com/play/1026408/Super-Powering-Technical-Artists-Using",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1026687",
+    "title": "Towards Real time Ray Tracing",
+    "url": "https://gdcvault.com/play/1026687/Towards-Real-time-Ray-Tracing",
+    "year": "2020",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1023140",
+    "title": "Level Design Workshop 360 Approach",
+    "url": "https://gdcvault.com/play/1023140/Level-Design-Workshop-360-Approach",
+    "year": "2016",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1024158",
+    "title": "Building Non linear Narratives in",
+    "url": "https://gdcvault.com/play/1024158/Building-Non-linear-Narratives-in",
+    "year": "2017",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1027069",
+    "title": "Tools Summit Embedded Scripting with",
+    "url": "https://gdcvault.com/play/1027069/Tools-Summit-Embedded-Scripting-with",
+    "year": "2021",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025189",
+    "title": "Marketing Judo How to Sell",
+    "url": "https://gdcvault.com/play/1025189/Marketing-Judo-How-to-Sell",
+    "year": "2018",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1022426",
+    "title": "Advanced Visual Effects for 2D",
+    "url": "https://gdcvault.com/play/1022426/Advanced-Visual-Effects-for-2D",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025365",
+    "title": "Epic Sync Wrangling the Work",
+    "url": "https://gdcvault.com/play/1025365/Epic-Sync-Wrangling-the-Work",
+    "year": "2018",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1029125",
+    "title": "Game Narrative Summit Minimal Space",
+    "url": "https://gdcvault.com/play/1029125/Game-Narrative-Summit-Minimal-Space",
+    "year": "2023",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1022486",
+    "title": "Making Things Up The Power",
+    "url": "https://gdcvault.com/play/1022486/Making-Things-Up-The-Power",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1023138",
+    "title": "Producer Bootcamp How Saying No",
+    "url": "https://gdcvault.com/play/1023138/Producer-Bootcamp-How-Saying-No",
+    "year": "2016",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1024052",
+    "title": "Players Are People",
+    "url": "https://gdcvault.com/play/1024052/Players-Are-People",
+    "year": "2017",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1026695",
+    "title": "Creating Physically Based Materials for",
+    "url": "https://gdcvault.com/play/1026695/Creating-Physically-Based-Materials-for",
+    "year": "2020",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1027781",
+    "title": "Solo Development Myths Reality and",
+    "url": "https://gdcvault.com/play/1027781/Solo-Development-Myths-Reality-and",
+    "year": "2022",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1034610",
+    "title": "The Secrets of Baldur s",
+    "url": "https://gdcvault.com/play/1034610/The-Secrets-of-Baldur-s",
+    "year": "2024",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025295",
+    "title": "Vehicle Feel Masterclass Balancing Arcade",
+    "url": "https://gdcvault.com/play/1025295/Vehicle-Feel-Masterclass-Balancing-Arcade",
+    "year": "2018",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025417",
+    "title": "Visual Effects Bootcamp Zip Thwack",
+    "url": "https://gdcvault.com/play/1025417/Visual-Effects-Bootcamp-Zip-Thwack",
+    "year": "2018",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1023293",
+    "title": "Maximizing Critique Improving Communication for",
+    "url": "https://gdcvault.com/play/1023293/Maximizing-Critique-Improving-Communication-for",
+    "year": "2016",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1027311",
+    "title": "Tools Summit Cryptic Studios Magic",
+    "url": "https://gdcvault.com/play/1027311/Tools-Summit-Cryptic-Studios-Magic",
+    "year": "2021",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1021895",
+    "title": "Creative Corner Cutting Tower of",
+    "url": "https://gdcvault.com/play/1021895/Creative-Corner-Cutting-Tower-of",
+    "year": "2015",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1025915",
+    "title": "Critiquing Game Visuals Common Problems",
+    "url": "https://gdcvault.com/play/1025915/Critiquing-Game-Visuals-Common-Problems",
+    "year": "2019",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1026635",
+    "title": "Witcher 3 on the",
+    "url": "https://gdcvault.com/play/1026635/-Witcher-3-on-the",
+    "year": "2020",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1023204",
+    "title": "Sculpting a Gameplay Scripting",
+    "url": "https://gdcvault.com/play/1023204/Sculpting-a-Gameplay-Scripting",
+    "year": "2016",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  },
+  {
+    "id": "1029264",
+    "title": "Open Source Game Development Summit",
+    "url": "https://gdcvault.com/play/1029264/Open-Source-Game-Development-Summit",
+    "year": "2023",
+    "category": "Other",
+    "why_classic": "AI-curated timeless GDC talk"
+  }
+]
