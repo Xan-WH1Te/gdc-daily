@@ -17,12 +17,21 @@ def _get_session():
     return _session
 
 
-def fetch_year_sessions(year):
+def fetch_year_sessions(year, retries=3):
     """Return list of {session_id, url, title_from_slug, year} from a year page."""
     short = str(year)[-2:]
     url = f"{BASE_URL}/free/gdc-{short}/"
-    resp = _get_session().get(url, timeout=30)
-    resp.raise_for_status()
+    s = _get_session()
+    for attempt in range(retries):
+        try:
+            resp = s.get(url, timeout=30)
+            resp.raise_for_status()
+            break
+        except requests.RequestException:
+            if attempt < retries - 1:
+                time.sleep(2 ** attempt)
+            else:
+                raise
 
     sessions = []
     seen = set()
@@ -42,7 +51,9 @@ def fetch_year_sessions(year):
 
 
 def _get_meta(text, prop):
-    m = re.search(rf'<meta\s+property="og:{prop}"\s+content="([^"]*)"', text)
+    m = re.search(rf'<meta\s+(?:[^>]*\s)?property="og:{prop}"[^>]*content="([^"]*)"', text)
+    if not m:
+        m = re.search(rf'<meta\s+(?:[^>]*\s)?content="([^"]*)"[^>]*property="og:{prop}"', text)
     return m.group(1) if m else ""
 
 
