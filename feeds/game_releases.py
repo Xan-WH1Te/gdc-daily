@@ -11,7 +11,11 @@ STEAM_APP = "https://store.steampowered.com/app/{appid}/"
 RSS_FEEDS = [
     ("IGN", "https://feeds.feedburner.com/ign/all"),
     ("GameSpot", "https://www.gamespot.com/feeds/news/"),
-    ("游民星空", "https://www.gamersky.com/rss/news.xml"),
+    ("Eurogamer", "https://www.eurogamer.net/feed"),
+    ("Kotaku", "https://kotaku.com/rss"),
+    ("Gematsu", "https://www.gematsu.com/feed"),
+    ("VGC", "https://www.videogameschronicle.com/feed/"),
+    ("Destructoid", "https://www.destructoid.com/feed/"),
 ]
 
 _session = None
