@@ -1,9 +1,13 @@
-"""Claude API summarization — structured JSON from GDC talk descriptions."""
+"""AI summarization via OpenAI-compatible API — structured JSON from GDC talk descriptions."""
 import json
 import os
 import re
 
 import requests
+
+# OpenAI-compatible endpoint (Alibaba Cloud / DeepSeek)
+API_BASE = os.environ.get("OPENAI_API_BASE", "https://dashscope.aliyuncs.com/compatible-mode/v1")
+MODEL = os.environ.get("OPENAI_MODEL", "deepseek-chat")
 
 PROMPT = """You are a game development technical editor. Based on the GDC talk description below, output ONLY a JSON object (no markdown fences, no extra text) with these exact fields:
 
@@ -21,7 +25,7 @@ Talk description:
 
 
 def summarize(description, title):
-    """Return structured summary dict from Claude API. Falls back gracefully on errors."""
+    """Return structured summary dict from AI API. Falls back gracefully on errors."""
     if not description or not description.strip():
         return _fallback(title)
 
@@ -32,23 +36,30 @@ def summarize(description, title):
 
     try:
         resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
+            f"{API_BASE}/chat/completions",
             headers={
-                "x-api-key": api_key,
-                "anthropic-version": "2023-06-01",
+                "Authorization": f"Bearer {api_key}",
                 "content-type": "application/json",
             },
             json={
-                "model": "claude-sonnet-4-6",
+                "model": MODEL,
                 "max_tokens": 500,
+                "temperature": 0.3,
                 "messages": [
-                    {"role": "user", "content": PROMPT.format(description=description)}
+                    {
+                        "role": "system",
+                        "content": "You are a game development technical editor. Always output valid JSON.",
+                    },
+                    {
+                        "role": "user",
+                        "content": PROMPT.format(description=description),
+                    },
                 ],
             },
             timeout=60,
         )
         resp.raise_for_status()
-        text = resp.json()["content"][0]["text"]
+        text = resp.json()["choices"][0]["message"]["content"]
     except (requests.RequestException, KeyError, IndexError) as e:
         print(f"summarizer: API call failed: {e}, using fallback")
         return _fallback(title)
