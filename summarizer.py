@@ -5,8 +5,6 @@ import re
 
 import requests
 
-API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-
 PROMPT = """You are a game development technical editor. Based on the GDC talk description below, output ONLY a JSON object (no markdown fences, no extra text) with these exact fields:
 
 {
@@ -23,28 +21,37 @@ Talk description:
 
 
 def summarize(description, title):
-    """Return structured summary dict from Claude API. Falls back gracefully on empty input."""
+    """Return structured summary dict from Claude API. Falls back gracefully on errors."""
     if not description or not description.strip():
         return _fallback(title)
 
-    resp = requests.post(
-        "https://api.anthropic.com/v1/messages",
-        headers={
-            "x-api-key": API_KEY,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        },
-        json={
-            "model": "claude-sonnet-4-6",
-            "max_tokens": 500,
-            "messages": [
-                {"role": "user", "content": PROMPT.format(description=description)}
-            ],
-        },
-        timeout=60,
-    )
-    resp.raise_for_status()
-    text = resp.json()["content"][0]["text"]
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        print("summarizer: ANTHROPIC_API_KEY not set, using fallback")
+        return _fallback(title)
+
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-sonnet-4-6",
+                "max_tokens": 500,
+                "messages": [
+                    {"role": "user", "content": PROMPT.format(description=description)}
+                ],
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        text = resp.json()["content"][0]["text"]
+    except (requests.RequestException, KeyError, IndexError) as e:
+        print(f"summarizer: API call failed: {e}, using fallback")
+        return _fallback(title)
 
     # Strip markdown code fences if present
     text = re.sub(r"^```(?:json)?\s*", "", text.strip())
