@@ -107,7 +107,7 @@ def run_feed1_gdc_new(conn):
 def run_feed2_game_releases():
     """Feed 2: New game releases. Returns list of embeds."""
     from feeds.game_releases import (
-        fetch_steam_new_releases, fetch_media_news, fetch_game_detail
+        fetch_steam_new_releases, fetch_media_news, fetch_game_detail, fetch_metacritic_score
     )
 
     print("[Feed 2] Fetching game releases...")
@@ -141,10 +141,16 @@ def run_feed2_game_releases():
         if item.get("appid"):
             detail = fetch_game_detail(item["appid"]) or {}
             time.sleep(0.5)
+            # Look up Metacritic score
+            mc = fetch_metacritic_score(item["title"])
+            if mc:
+                detail["metacritic"] = mc
+                print(f"    Metacritic: {mc['score']}")
 
         enrich = summarize_game_enrich(
             item["title"],
             detail.get("description", item.get("summary", "")),
+            detail.get("name_cn", ""),
         )
         embed = build_game_embed(item, detail, enrich)
         embeds.append(embed)

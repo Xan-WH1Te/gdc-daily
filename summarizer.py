@@ -35,13 +35,14 @@ Output ONLY a JSON array of selected indices, e.g. [0, 3, 5]"""
 
 GAME_ENRICH_PROMPT = """For this game, output a JSON object:
 {{
-  "one_liner_cn": "Chinese one-liner capturing what makes this game exciting (within 20 chars)",
+  "one_liner_cn": "Chinese one-liner capturing what makes this game exciting (within 20 chars). Use the official Chinese name if provided, DO NOT invent translations for game titles",
   "genre_tags": ["genre1", "genre2"],
   "platforms": ["PC", "PS5"],
   "release_date": "YYYY-MM-DD or empty string if unknown",
   "notability": "Brief reason why this matters (Chinese, 1 sentence)"
 }}
 
+Official Chinese name: {name_cn}
 Game: {title}
 Description: {description}"""
 
@@ -116,16 +117,16 @@ def summarize_game_filter(catalog_text):
     return result if isinstance(result, list) else []
 
 
-def summarize_game_enrich(title, description):
+def summarize_game_enrich(title, description, name_cn=""):
     """Feed 2 enrich: Generate Chinese one-liner + metadata for a game."""
     if not description:
         return {
-            "one_liner_cn": title, "genre_tags": [],
+            "one_liner_cn": name_cn or title, "genre_tags": [],
             "platforms": [], "release_date": "", "notability": "",
         }
     result = _call_ai(
         "You are a game industry editor. Always output valid JSON.",
-        GAME_ENRICH_PROMPT.format(title=title, description=description[:500]),
+        GAME_ENRICH_PROMPT.format(title=title, description=description[:500], name_cn=name_cn or "Unknown"),
     )
     if result:
         result.setdefault("one_liner_cn", title)

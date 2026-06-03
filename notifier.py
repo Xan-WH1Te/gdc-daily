@@ -118,6 +118,16 @@ def build_game_embed(item, detail, enrich):
     if detail and detail.get("image"):
         embed["thumbnail"] = {"url": detail["image"]}
 
+    if detail and detail.get("metacritic"):
+        mc = detail["metacritic"]
+        embed["description"] += f'\n\n🎯 **Metacritic: {mc["score"]}** ({mc.get("reviews", 0)} reviews)'
+
+    if detail and detail.get("price"):
+        price_text = f'💰 {detail["price"]}'
+        if detail.get("discount"):
+            price_text += f' (-{detail["discount"]})'
+        embed["description"] += f'\n{price_text}'
+
     if detail and detail.get("video_url"):
         if "description" in embed:
             embed["description"] += f'\n\n▶ [Watch Trailer]({detail["video_url"]})'

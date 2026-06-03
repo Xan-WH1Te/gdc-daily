@@ -1,1 +1,5 @@
 .env
+__pycache__/
+*.pyc
+cache.db
+classic_state.db

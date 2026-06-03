@@ -73,9 +73,10 @@ def fetch_media_news():
 
 
 def fetch_game_detail(appid):
-    """Fetch Steam store page for a game to get description, image, video."""
+    """Fetch Steam store page for a game to get description, image, video, Chinese name."""
     url = STEAM_APP.format(appid=appid)
-    resp = _get_session().get(url, timeout=30)
+    s = _get_session()
+    resp = s.get(url, timeout=30)
     if resp.status_code != 200:
         return None
     text = resp.text
@@ -97,6 +98,37 @@ def fetch_game_detail(appid):
     m = re.search(r'<div class="date">([^<]+)</div>', text)
     if m:
         date = m.group(1).strip()
+
+    # Chinese name from Steam store (og:title from zh-CN page)
+    name_cn = ""
+    try:
+        resp_cn = s.get(url + "?l=schinese", timeout=15)
+        if resp_cn.status_code == 200:
+            cn_title = ""
+            mm = re.search(r'<meta\s+property="og:title"\s+content="([^"]*)"', resp_cn.text)
+            if mm:
+                cn_title = mm.group(1)
+            # Strip "Steam 上的 " prefix if present
+            cn_title = cn_title.replace("Steam 上的 ", "")
+            if cn_title and re.search(r'[一-鿿]', cn_title):
+                name_cn = cn_title
+    except Exception:
+        pass
+
+    # Price info
+    price = ""
+    discount = ""
+    m = re.search(r'<div[^>]*class="[^"]*game_purchase_price[^"]*"[^>]*>([^<]+)</div>', text)
+    if m:
+        price = m.group(1).strip()
+    m = re.search(r'<div[^>]*class="[^"]*discount_pct[^"]*"[^>]*>([^<]+)</div>', text)
+    if m:
+        discount = m.group(1).strip()
+    # OG price (before discount)
+    og_price = ""
+    m = re.search(r'<div[^>]*class="[^"]*discount_original_price[^"]*"[^>]*>([^<]+)</div>', text)
+    if m:
+        og_price = m.group(1).strip()
 
     # Trailer video (YouTube URL in the page)
     video = ""
@@ -120,7 +152,31 @@ def fetch_game_detail(appid):
         "release_date": date,
         "video_url": video,
         "tags": tags,
+        "name_cn": name_cn,
+        "price": price,
+        "discount": discount,
+        "og_price": og_price,
     }
+
+
+def fetch_metacritic_score(title):
+    """Look up Metacritic metascore for a game. Returns None if not found."""
+    slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+    url = f"https://www.metacritic.com/game/{slug}/"
+    try:
+        resp = _get_session().get(url, timeout=15)
+        if resp.status_code != 200:
+            return None
+        m = re.search(r'"aggregateRating"\s*:\s*\{[^}]*"ratingValue"\s*:\s*(\d+)', resp.text)
+        if m:
+            score = int(m.group(1))
+            # Also try to get review count
+            rc = re.search(r'"reviewCount"\s*:\s*(\d+)', resp.text)
+            count = int(rc.group(1)) if rc else 0
+            return {"score": score, "reviews": count}
+    except Exception:
+        pass
+    return None
 
 
 def ai_filter_and_enrich(items, summarize_fn):
