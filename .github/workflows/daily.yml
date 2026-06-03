@@ -1,0 +1,36 @@
+name: GDC Daily Digest
+
+on:
+  schedule:
+    - cron: '7 1 * * *'  # 9:07 AM Beijing time (UTC+8)
+  workflow_dispatch:      # Manual trigger
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore cache DB
+        uses: actions/cache@v4
+        with:
+          path: |
+            cache.db
+            classic_state.db
+          key: gdc-cache-${{ github.run_number }}
+          restore-keys: gdc-cache-
+
+      - name: Run daily digest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GDC_WEBHOOK_URL: ${{ secrets.GDC_WEBHOOK_URL }}
+        run: python3 gdc_daily.py
