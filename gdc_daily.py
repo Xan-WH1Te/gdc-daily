@@ -7,7 +7,7 @@ import time
 
 from scraper import fetch_year_sessions, fetch_session_detail
 from summarizer import summarize_gdc, summarize_game_filter, summarize_game_enrich, summarize_classic
-from notifier import build_embed, build_game_embed, build_classic_embed, send_to_discord
+from notifier import build_embed, build_game_embed, build_classic_embed
 from telegram_notifier import (
     format_gdc_talk, format_game_release, format_classic_gdc, send_digest as send_telegram
 )
@@ -221,8 +221,6 @@ def main():
     missing_vars = []
     if not os.environ.get("ANTHROPIC_API_KEY"):
         missing_vars.append("ANTHROPIC_API_KEY")
-    if not os.environ.get("GDC_WEBHOOK_URL"):
-        missing_vars.append("GDC_WEBHOOK_URL")
     if missing_vars:
         print(f"Missing env vars: {', '.join(missing_vars)}")
         sys.exit(1)
@@ -257,14 +255,11 @@ def main():
 
     conn.close()
 
-    if all_embeds:
-        print(f"\nTotal: {len(all_embeds)} embeds. Sending to Discord...")
-        send_to_discord(all_embeds)
-        print("Done.")
-
     if all_messages:
+        print(f"\nTotal: {len(all_messages)} messages. Sending to Telegram...")
         send_telegram(all_messages)
-    elif not all_embeds:
+        print("Done.")
+    else:
         print("No new content to report.")
 
 

@@ -32,7 +32,6 @@ jobs:
       - name: Run daily digest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GDC_WEBHOOK_URL: ${{ secrets.GDC_WEBHOOK_URL }}
           GDC_TELEGRAM_TOKEN: ${{ secrets.GDC_TELEGRAM_TOKEN }}
           GDC_TELEGRAM_CHAT_ID: ${{ secrets.GDC_TELEGRAM_CHAT_ID }}
         run: python3 gdc_daily.py
