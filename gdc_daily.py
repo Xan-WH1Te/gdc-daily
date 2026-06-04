@@ -8,6 +8,9 @@ import time
 from scraper import fetch_year_sessions, fetch_session_detail
 from summarizer import summarize_gdc, summarize_game_filter, summarize_game_enrich, summarize_classic
 from notifier import build_embed, build_game_embed, build_classic_embed, send_to_discord
+from telegram_notifier import (
+    format_gdc_talk, format_game_release, format_classic_gdc, send_digest as send_telegram
+)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache.db")
 YEARS = [int(y.strip()) for y in os.environ.get("GDC_YEARS", "2026").split(",")]
@@ -65,8 +68,9 @@ def seed_cache(conn, sessions):
 
 
 def run_feed1_gdc_new(conn):
-    """Feed 1: New GDC Vault talks. Returns list of embeds."""
+    """Feed 1: New GDC Vault talks. Returns (embeds, messages)."""
     embeds = []
+    messages = []
     for year in YEARS:
         print(f"[Feed 1] Fetching GDC {year} sessions...")
         try:
@@ -92,6 +96,7 @@ def run_feed1_gdc_new(conn):
             summary = summarize_gdc(detail.get("description", ""), title)
             embed = build_embed(session, detail, summary)
             embeds.append(embed)
+            messages.append(format_gdc_talk(session, detail, summary))
 
             conn.execute(
                 "INSERT OR IGNORE INTO seen_sessions (session_id, title, url, year) VALUES (?, ?, ?, ?)",
@@ -101,11 +106,11 @@ def run_feed1_gdc_new(conn):
             time.sleep(1)
 
     print(f"[Feed 1] {len(embeds)} embeds")
-    return embeds
+    return embeds, messages
 
 
 def run_feed2_game_releases():
-    """Feed 2: New game releases. Returns list of embeds."""
+    """Feed 2: New game releases. Returns (embeds, messages)."""
     from feeds.game_releases import (
         fetch_steam_new_releases, fetch_media_news, fetch_game_detail, fetch_metacritic_score
     )
@@ -117,7 +122,7 @@ def run_feed2_game_releases():
     print(f"  {len(all_items)} candidates ({len(steam_items)} Steam, {len(media_items)} news)")
 
     if not all_items:
-        return []
+        return [], []
 
     catalog = []
     for i, item in enumerate(all_items):
@@ -127,10 +132,11 @@ def run_feed2_game_releases():
     indices = summarize_game_filter(catalog_text)
     if not indices:
         print("  AI filter returned no selections")
-        return []
+        return [], []
     print(f"  AI selected: {indices}")
 
     embeds = []
+    messages = []
     for idx in indices:
         if not isinstance(idx, int) or idx >= len(all_items):
             continue
@@ -154,28 +160,30 @@ def run_feed2_game_releases():
         )
         embed = build_game_embed(item, detail, enrich)
         embeds.append(embed)
+        messages.append(format_game_release(item, detail, enrich))
 
     print(f"[Feed 2] {len(embeds)} embeds")
-    return embeds
+    return embeds, messages
 
 
 def run_feed3_classic_gdc():
-    """Feed 3: Classic GDC talk review. Returns list of embeds."""
+    """Feed 3: Classic GDC talk review. Returns (embeds, messages)."""
     from feeds.classic_gdc import load_seeds, pick_daily
 
     print("[Feed 3] Classic GDC...")
     seeds = load_seeds()
     if not seeds:
         print("  No seeds available")
-        return []
+        return [], []
 
     picked = pick_daily(seeds)
     if not picked:
         print("  None picked")
-        return []
+        return [], []
     print(f"  Picked {len(picked)} classic(s)")
 
     embeds = []
+    messages = []
     for talk in picked:
         print(f"  [{talk['title'][:50]}]")
         session = {
@@ -201,10 +209,11 @@ def run_feed3_classic_gdc():
         )
         embed = build_classic_embed(session, detail, summary)
         embeds.append(embed)
+        messages.append(format_classic_gdc(session, detail, summary))
         time.sleep(1)
 
     print(f"[Feed 3] {len(embeds)} embeds")
-    return embeds
+    return embeds, messages
 
 
 def main():
@@ -235,9 +244,16 @@ def main():
 
     # Run all feeds
     all_embeds = []
-    all_embeds.extend(run_feed1_gdc_new(conn))
-    all_embeds.extend(run_feed2_game_releases())
-    all_embeds.extend(run_feed3_classic_gdc())
+    all_messages = []
+    e, m = run_feed1_gdc_new(conn)
+    all_embeds.extend(e)
+    all_messages.extend(m)
+    e, m = run_feed2_game_releases()
+    all_embeds.extend(e)
+    all_messages.extend(m)
+    e, m = run_feed3_classic_gdc()
+    all_embeds.extend(e)
+    all_messages.extend(m)
 
     conn.close()
 
@@ -245,7 +261,10 @@ def main():
         print(f"\nTotal: {len(all_embeds)} embeds. Sending to Discord...")
         send_to_discord(all_embeds)
         print("Done.")
-    else:
+
+    if all_messages:
+        send_telegram(all_messages)
+    elif not all_embeds:
         print("No new content to report.")
 
 
