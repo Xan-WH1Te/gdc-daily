@@ -26,6 +26,7 @@ jobs:
           path: |
             cache.db
             classic_state.db
+            pushed_items.db
           key: gdc-cache-${{ github.run_number }}
           restore-keys: gdc-cache-
 

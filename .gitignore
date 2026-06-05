@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 cache.db
 classic_state.db
+pushed_items.db
