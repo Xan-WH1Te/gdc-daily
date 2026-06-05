@@ -9,7 +9,8 @@ from scraper import fetch_year_sessions, fetch_session_detail
 from summarizer import summarize_gdc, summarize_game_filter, summarize_game_enrich, summarize_classic
 from notifier import build_embed, build_game_embed, build_classic_embed
 from telegram_notifier import (
-    format_gdc_talk, format_game_release, format_classic_gdc, send_digest as send_telegram
+    format_gdc_talk, format_game_release, format_classic_gdc, send_digest as send_telegram,
+    is_duplicate, mark_pushed, dedup_game_items
 )
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache.db")
@@ -124,6 +125,12 @@ def run_feed2_game_releases():
     if not all_items:
         return [], []
 
+    # Dedup: merge same game from different sources
+    all_items = dedup_game_items(all_items)
+    # Dedup: remove previously pushed items
+    all_items = [it for it in all_items if not is_duplicate(it["title"], it.get("source", ""))]
+    print(f"  {len(all_items)} after dedup")
+
     catalog = []
     for i, item in enumerate(all_items):
         catalog.append(f"[{i}] [{item.get('source', '')}] {item['title']}")
@@ -161,6 +168,7 @@ def run_feed2_game_releases():
         embed = build_game_embed(item, detail, enrich)
         embeds.append(embed)
         messages.append(format_game_release(item, detail, enrich))
+        mark_pushed(item["title"], item.get("source", ""))
 
     print(f"[Feed 2] {len(embeds)} embeds")
     return embeds, messages

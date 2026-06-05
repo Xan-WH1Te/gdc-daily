@@ -35,14 +35,14 @@ Output ONLY a JSON array of selected indices, e.g. [0, 3, 5]"""
 
 GAME_ENRICH_PROMPT = """For this game, output a JSON object:
 {{
-  "one_liner_cn": "Chinese one-liner capturing what makes this game exciting (within 20 chars). Use the official Chinese name if provided, DO NOT invent translations for game titles",
+  "one_liner_cn": "Chinese one-liner capturing what makes this game exciting (within 20 chars). Use the provided official Chinese name for the game, DO NOT invent translations for game titles, character names, or proper nouns",
   "genre_tags": ["genre1", "genre2"],
   "platforms": ["PC", "PS5"],
   "release_date": "YYYY-MM-DD or empty string if unknown",
-  "notability": "Brief reason why this matters (Chinese, 1 sentence)"
+  "notability": "Brief reason why this matters (Chinese, 1 sentence). Keep game names and character names in their original English form if no official Chinese translation exists."
 }}
 
-Official Chinese name: {name_cn}
+Official Chinese name (from Steam/IGN, empty if none): {name_cn}
 Game: {title}
 Description: {description}"""
 

@@ -1,12 +1,17 @@
-"""Telegram notification — HTML-formatted messages for daily digest."""
+"""Telegram notification — HTML-formatted digest with dedup + threading."""
+import hashlib
 import os
 import re
+import sqlite3
 import time
+from datetime import datetime, timezone
 
 import requests
 
 API_BASE = "https://api.telegram.org/bot"
-SEP = "━━━━━━━━━━━━━━━━━━━━━━"
+SEP = "━━━━━━━━━━━━━━━━━━"
+
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pushed_items.db")
 
 
 def _get_credentials():
@@ -16,49 +21,138 @@ def _get_credentials():
 
 
 def _esc(text):
-    """Escape HTML special chars."""
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def _bold_markers(text):
-    """Convert **markers** to <b>HTML</b> after escaping."""
     text = _esc(text)
     text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
     return text
 
 
 def _tags_to_hashtags(tags):
-    """Convert tags list to clickable Telegram hashtags."""
     if not tags:
         return ""
-    return "  ".join(f"#{_esc(t).replace(' ', '_')}" for t in tags if t)
+    seen = set()
+    result = []
+    for t in tags:
+        tag = f"#{_esc(t).replace(' ', '_').replace('-', '_')}"
+        if tag not in seen:
+            seen.add(tag)
+            result.append(tag)
+    return "  ".join(result)
 
 
-def _send_message(html_text):
-    """Send a single HTML-formatted message to Telegram."""
+# ── Dedup ──────────────────────────────────────────────
+
+def _init_dedup_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS pushed_items (
+            content_hash TEXT PRIMARY KEY,
+            title TEXT,
+            source TEXT,
+            pushed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    # Cleanup old entries
+    conn.execute("DELETE FROM pushed_items WHERE pushed_at < datetime('now', '-30 days')")
+    conn.commit()
+    return conn
+
+
+def _hash_content(title, source):
+    raw = f"{title.lower().strip()}|{source.lower().strip()}"
+    return hashlib.md5(raw.encode()).hexdigest()
+
+
+def is_duplicate(title, source):
+    """Check if this title+source combo was already pushed."""
+    conn = _init_dedup_db()
+    h = _hash_content(title, source)
+    row = conn.execute("SELECT 1 FROM pushed_items WHERE content_hash = ?", (h,)).fetchone()
+    conn.close()
+    return row is not None
+
+
+def mark_pushed(title, source):
+    """Record that this item has been pushed."""
+    conn = _init_dedup_db()
+    h = _hash_content(title, source)
+    conn.execute(
+        "INSERT OR IGNORE INTO pushed_items (content_hash, title, source) VALUES (?, ?, ?)",
+        (h, title, source),
+    )
+    conn.commit()
+    conn.close()
+
+
+def dedup_game_items(items):
+    """Merge duplicate game items from different sources. Returns deduped list."""
+    seen = {}
+    result = []
+    for item in items:
+        key = item["title"].lower().strip().rstrip(".")
+        # Normalize common suffixes
+        for suffix in [" trailer", " revealed", " announced", " launch", " delay"]:
+            if key.endswith(suffix):
+                key = key[:-len(suffix)]
+        if key in seen:
+            existing = seen[key]
+            # Merge sources
+            src = existing.get("merged_sources", [existing.get("source", "")])
+            src.append(item.get("source", ""))
+            existing["merged_sources"] = list(set(src))
+        else:
+            seen[key] = item
+            result.append(item)
+    return result
+
+
+# ── Sending ────────────────────────────────────────────
+
+def _send_message(html_text, reply_to=None, disable_preview=False, silent=False, retries=2):
+    """Send a message to Telegram. Returns message_id on success, None on failure."""
     token, chat_id = _get_credentials()
     if not token or not chat_id:
-        return False
-    try:
-        resp = requests.post(
-            f"{API_BASE}{token}/sendMessage",
-            json={
-                "chat_id": chat_id,
-                "text": html_text,
-                "parse_mode": "HTML",
-                "disable_web_page_preview": False,
-            },
-            timeout=30,
-        )
-        resp.raise_for_status()
-        return True
-    except requests.RequestException as e:
-        print(f"telegram: send failed: {e}")
-        return False
+        return None
 
+    for attempt in range(retries):
+        try:
+            resp = requests.post(
+                f"{API_BASE}{token}/sendMessage",
+                json={
+                    "chat_id": chat_id,
+                    "text": html_text,
+                    "parse_mode": "HTML",
+                    "disable_web_page_preview": disable_preview,
+                    "disable_notification": silent,
+                    **(dict(reply_to_message_id=reply_to) if reply_to else {}),
+                },
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("ok"):
+                return data["result"]["message_id"]
+        except requests.RequestException as e:
+            if attempt < retries - 1:
+                time.sleep(1)
+            else:
+                print(f"telegram: send failed: {e}")
+    return None
+
+
+def _should_silent():
+    """Don't send notification sounds late at night (22:00-07:00 UTC)."""
+    hour = datetime.now(timezone.utc).hour
+    return hour >= 22 or hour < 7
+
+
+# ── Digest Assembly ────────────────────────────────────
 
 def send_digest(all_messages):
-    """Send all digest messages to Telegram, one per talk/item."""
+    """Send the daily digest as a header + threaded replies."""
     token, chat_id = _get_credentials()
     if not token or not chat_id:
         print("GDC_TELEGRAM_TOKEN or GDC_TELEGRAM_CHAT_ID not set, skipping Telegram")
@@ -67,14 +161,66 @@ def send_digest(all_messages):
     if not all_messages:
         return
 
-    print(f"Sending {len(all_messages)} messages to Telegram...")
-    for i, msg in enumerate(all_messages):
-        if i > 0:
-            time.sleep(0.4)
-        _send_message(msg)
+    silent = _should_silent()
+    print(f"Sending {len(all_messages)} messages to Telegram{' (silent)' if silent else ''}...")
 
-    print(f"Telegram: {len(all_messages)} messages sent")
+    # Count by type
+    game_count = sum(1 for m in all_messages if m["type"] == "game")
+    gdc_count = sum(1 for m in all_messages if m["type"] == "gdc_talk")
+    classic_count = sum(1 for m in all_messages if m["type"] == "classic")
 
+    # 1. Send header
+    now = datetime.now()
+    weekday = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"][now.weekday()]
+    date_str = f"{now.year}年{now.month}月{now.day}日 {weekday}"
+
+    header_parts = [
+        f"📋 <b>GDC 游戏日报</b>",
+        f"📅 {date_str}",
+        "",
+        SEP,
+    ]
+    if game_count:
+        header_parts.append(f"🎮 新游戏发布 <b>{game_count}</b> 条")
+    if gdc_count:
+        header_parts.append(f"🔵 GDC 新 Talk <b>{gdc_count}</b> 条")
+    if classic_count:
+        header_parts.append(f"📚 经典回顾 <b>{classic_count}</b> 条")
+    header_parts.extend([
+        "",
+        SEP,
+        f"#GDC日报  #{now.strftime('%Y%m%d')}",
+    ])
+
+    header_id = _send_message(
+        "\n".join(header_parts),
+        disable_preview=True,
+        silent=silent,
+    )
+
+    if not header_id:
+        print("telegram: header send failed, aborting")
+        return
+
+    # 2. Send each item as reply
+    sent = 0
+    for msg in all_messages:
+        time.sleep(0.4)
+        # Game messages: enable link preview for Steam thumbnails
+        disable_preview = msg["type"] != "game"
+        msg_id = _send_message(
+            msg["text"],
+            reply_to=header_id,
+            disable_preview=disable_preview,
+            silent=True,  # replies always silent
+        )
+        if msg_id:
+            sent += 1
+
+    print(f"Telegram: {sent}/{len(all_messages)} messages sent")
+
+
+# ── Formatting ─────────────────────────────────────────
 
 def format_gdc_talk(session, detail, summary):
     """Feed 1: New GDC Vault talk."""
@@ -97,7 +243,7 @@ def format_gdc_talk(session, detail, summary):
         lines.extend(["", f'💡 <i>{_esc(summary["one_liner"])}</i>'])
 
     if summary.get("summary_cn"):
-        lines.extend(["", f'<u>📌 中文梗概</u>', _esc(summary["summary_cn"])])
+        lines.extend(["", f"<u>📌 中文梗概</u>", _esc(summary["summary_cn"])])
 
     if summary.get("key_points"):
         lines.append("")
@@ -108,24 +254,31 @@ def format_gdc_talk(session, detail, summary):
     tags = _tags_to_hashtags(summary.get("tags", []))
     level_str = {"Beginner": "入门", "Intermediate": "进阶", "Advanced": "深入"}
     level = level_str.get(summary.get("level", ""), "")
-    footer = f'⭐ {_esc(level)}' if level else ""
+    footer = f"⭐ {_esc(level)}" if level else ""
     lines.extend(["", SEP, f"{tags}  {footer}".strip()])
 
-    return "\n".join(lines)
+    return {"type": "gdc_talk", "text": "\n".join(lines)}
 
 
 def format_game_release(item, detail, enrich):
-    """Feed 2: New game release."""
+    """Feed 2: New game release with official Chinese name."""
     title = item["title"]
     url = item["url"]
     source = item.get("source", "Steam")
+    merged = item.get("merged_sources", [])
     name_cn = detail.get("name_cn", "") if detail else ""
 
-    display_title = f"{_esc(name_cn)} / {_esc(title)}" if name_cn else _esc(title)
+    # Title: official CN name / EN name (no CN → EN only)
+    if name_cn and name_cn != title:
+        display_title = f"{_esc(name_cn)}  /  {_esc(title)}"
+    else:
+        display_title = _esc(title)
+
+    source_tag = "  ".join(f"#{_esc(s)}" for s in ([source] + merged))
 
     lines = [
         f'🎮 <b>{display_title}</b>',
-        f'🟢 #{_esc(source)}  #新游戏发布',
+        f'🟢 {source_tag}  #新游戏发布',
         "",
         f'🔗 <a href="{url}">Store Page</a>',
     ]
@@ -133,7 +286,6 @@ def format_game_release(item, detail, enrich):
     if enrich.get("one_liner_cn"):
         lines.extend(["", f'💡 <i>{_esc(enrich["one_liner_cn"])}</i>'])
 
-    # Meta line
     meta = []
     if enrich.get("genre_tags"):
         genre_str = "  ".join(f"<code>{_esc(t)}</code>" for t in enrich["genre_tags"])
@@ -146,7 +298,6 @@ def format_game_release(item, detail, enrich):
     if meta:
         lines.extend(["", "\n".join(meta)])
 
-    # Metacritic + Price on same line
     stats = []
     if detail and detail.get("metacritic"):
         mc = detail["metacritic"]
@@ -154,7 +305,7 @@ def format_game_release(item, detail, enrich):
     if detail and detail.get("price"):
         price_str = f'💰 {detail["price"]}'
         if detail.get("discount"):
-            price_str += f' <s>{detail.get("og_price", "")}</s>'
+            price_str += f'  <s>{detail.get("og_price", "")}</s>'
         stats.append(price_str)
     if stats:
         lines.extend(["", "  ".join(stats)])
@@ -173,7 +324,7 @@ def format_game_release(item, detail, enrich):
     tag_str = _tags_to_hashtags(tags)
     lines.extend(["", SEP, tag_str])
 
-    return "\n".join(lines)
+    return {"type": "game", "text": "\n".join(lines)}
 
 
 def format_classic_gdc(session, detail, summary):
@@ -197,7 +348,7 @@ def format_classic_gdc(session, detail, summary):
         lines.extend(["", f'💡 <b>{_esc(summary["core_insight"])}</b>'])
 
     if summary.get("summary_cn"):
-        lines.extend(["", f'<u>📌 中文梗概</u>', _bold_markers(summary["summary_cn"])])
+        lines.extend(["", f"<u>📌 中文梗概</u>", _bold_markers(summary["summary_cn"])])
 
     if summary.get("key_points"):
         lines.append("")
@@ -208,6 +359,6 @@ def format_classic_gdc(session, detail, summary):
     tags = list(summary.get("tags", []))
     audience = _esc(summary.get("target_audience", "游戏开发者"))
     tag_str = _tags_to_hashtags(tags)
-    lines.extend(["", SEP, f'⭐ {audience}  {tag_str}'])
+    lines.extend(["", SEP, f"⭐ {audience}  {tag_str}"])
 
-    return "\n".join(lines)
+    return {"type": "classic", "text": "\n".join(lines)}
